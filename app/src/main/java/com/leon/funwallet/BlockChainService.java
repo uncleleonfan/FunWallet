@@ -18,6 +18,9 @@ import org.bitcoinj.core.PeerGroup;
 import org.bitcoinj.core.listeners.PeerConnectedEventListener;
 import org.bitcoinj.core.listeners.PeerDisconnectedEventListener;
 import org.bitcoinj.core.listeners.PeerDiscoveredEventListener;
+import org.bitcoinj.net.discovery.MultiplexingDiscovery;
+import org.bitcoinj.net.discovery.PeerDiscovery;
+import org.bitcoinj.net.discovery.PeerDiscoveryException;
 import org.bitcoinj.store.BlockStoreException;
 import org.bitcoinj.store.SPVBlockStore;
 import org.bitcoinj.wallet.Wallet;
@@ -25,7 +28,9 @@ import org.bitcoinj.wallet.Wallet;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class BlockChainService extends Service {
 
@@ -43,16 +48,13 @@ public class BlockChainService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        BitcoinWalletManager.getInstance().getWallet(this, new BitcoinWalletManager.OnWalletLoadedListener() {
-            @Override
-            public void onWalletLoaded(Wallet w) {
-                wallet = w;
-                createBlockChain();
-            }
-        });
+        Log.d(TAG, "onCreate: ");
+        wallet = BitcoinWalletManager.getInstance().getWallet();
+        createBlockChain();
     }
 
     private void createBlockChain() {
+        Log.d(TAG, "createBlockChain: ");
         File blockChainFile = new File(getDir("blockstore", Context.MODE_PRIVATE), "blockchain");
         boolean blockChainFileExists = blockChainFile.exists();
         if (!blockChainFileExists) {
@@ -68,7 +70,7 @@ public class BlockChainService extends Service {
             if (!blockChainFileExists && earliestKeyCreationTime > 0) {
                 try {
                     final InputStream checkpointsInputStream = getAssets()
-                            .open("checkpoints-testnet");
+                            .open("checkpoints-testnet.txt");
                     CheckpointManager.checkpoint(Constants.NETWORK_PARAMETERS, checkpointsInputStream,
                             blockStore, earliestKeyCreationTime);
                 } catch (final IOException x) {
@@ -99,7 +101,7 @@ public class BlockChainService extends Service {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
-        peerGroup.setMaxConnections(1);
+        peerGroup.setMaxConnections(8);
         int connectTimeout = (int) (15 * DateUtils.SECOND_IN_MILLIS);
         peerGroup.setConnectTimeoutMillis(connectTimeout);
         int discoveryTimeout = (int) (10 * DateUtils.SECOND_IN_MILLIS);
@@ -107,6 +109,21 @@ public class BlockChainService extends Service {
         peerGroup.addDisconnectedEventListener(mPeerDisconnectedEventListener);
         peerGroup.addDiscoveredEventListener(mPeerDiscoveredEventListener);
         peerGroup.setPeerDiscoveryTimeoutMillis(discoveryTimeout);
+        peerGroup.addPeerDiscovery(new PeerDiscovery() {
+            private final PeerDiscovery normalPeerDiscovery = MultiplexingDiscovery
+                    .forServices(Constants.NETWORK_PARAMETERS, 0);
+
+            @Override
+            public InetSocketAddress[] getPeers(final long services, final long timeoutValue,
+                                                final TimeUnit timeoutUnit) throws PeerDiscoveryException {
+                return normalPeerDiscovery.getPeers(services, timeoutValue, timeoutUnit);
+            }
+
+            @Override
+            public void shutdown() {
+                normalPeerDiscovery.shutdown();
+            }
+        });
         peerGroup.startAsync();
         peerGroup.startBlockChainDownload(null);
     }
@@ -115,14 +132,14 @@ public class BlockChainService extends Service {
     private PeerConnectedEventListener mPeerConnectedEventListener = new PeerConnectedEventListener() {
         @Override
         public void onPeerConnected(Peer peer, int peerCount) {
-            Log.d(TAG, "onPeerConnected: " + peerCount);
+            Log.d(TAG, "onPeerConnected: " + peer.toString());
         }
     };
 
     private PeerDisconnectedEventListener mPeerDisconnectedEventListener = new PeerDisconnectedEventListener() {
         @Override
         public void onPeerDisconnected(Peer peer, int peerCount) {
-            Log.d(TAG, "onPeerDisconnected: " + peerCount);
+            Log.d(TAG, "onPeerDisconnected: " + peer.toString());
         }
     };
 

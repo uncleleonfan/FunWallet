@@ -40,7 +40,7 @@ public class BitcoinWalletManager {
         return sManager;
     }
 
-    public void getWallet(final ContextWrapper activity, final OnWalletLoadedListener listener) {
+    public void loadWallet(final ContextWrapper activity, final OnWalletLoadedListener listener) {
         if (wallet != null && listener != null) {
             listener.onWalletLoaded(wallet);
             return;
@@ -48,12 +48,13 @@ public class BitcoinWalletManager {
         getWalletExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                Context.propagate(Constants.CONTEXT);
                 try {
                     File walletFile = activity.getFileStreamPath("wallet-protobuf");
                     if (walletFile.exists()) {
                         InputStream inputStream = new FileInputStream(walletFile);
                         wallet  = new WalletProtobufSerializer().readWallet(inputStream);
+                        wallet.autosaveToFile(walletFile, 3 * 1000, TimeUnit.MILLISECONDS, null);
+                        wallet.cleanup();
                     } else {
                         wallet = new Wallet(Constants.NETWORK_PARAMETERS);
                         WalletFiles walletFiles = wallet.autosaveToFile(walletFile, 3 * 1000, TimeUnit.MILLISECONDS, null);
@@ -69,6 +70,10 @@ public class BitcoinWalletManager {
                 }
             }
         });
+    }
+
+    public Wallet getWallet() {
+        return wallet;
     }
 
 

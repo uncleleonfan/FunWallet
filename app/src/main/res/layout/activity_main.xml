@@ -13,10 +13,12 @@
         android:layout_height="wrap_content"
         android:text="Address:"/>
 
-    <TextView
+    <EditText
         android:id="@+id/address"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:background="@null"
+        android:focusable="false"/>
 
 
     <ImageView
