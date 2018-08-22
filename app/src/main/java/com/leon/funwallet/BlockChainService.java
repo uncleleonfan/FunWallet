@@ -50,7 +50,9 @@ public class BlockChainService extends Service {
         super.onCreate();
         Log.d(TAG, "onCreate: ");
         wallet = BitcoinWalletManager.getInstance().getWallet();
-        createBlockChain();
+        if (wallet != null) {
+            createBlockChain();
+        }
     }
 
     private void createBlockChain() {
@@ -152,16 +154,17 @@ public class BlockChainService extends Service {
         }
     };
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        shutdown();
-    }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        shutdown();
     }
 
     private void shutdown() {

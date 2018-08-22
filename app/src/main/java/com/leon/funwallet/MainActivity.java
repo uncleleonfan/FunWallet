@@ -5,14 +5,23 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.subgraph.orchid.encoders.Hex;
+
 import org.bitcoinj.core.Address;
 import org.bitcoinj.core.Coin;
+import org.bitcoinj.core.InsufficientMoneyException;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.uri.BitcoinURI;
+import org.bitcoinj.utils.MonetaryFormat;
 import org.bitcoinj.wallet.KeyChain;
+import org.bitcoinj.wallet.SendRequest;
 import org.bitcoinj.wallet.Wallet;
 import org.bitcoinj.wallet.listeners.WalletChangeEventListener;
 import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
@@ -28,13 +37,16 @@ public class MainActivity extends AppCompatActivity {
     private ImageView mQrImageView;
     private Wallet wallet;
 
+
+    private EditText mToAddressEdit;
+    private EditText mAmountEdit;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mAddressText = findViewById(R.id.address);
-        mBalanceText = findViewById(R.id.balance);
-        mQrImageView = findViewById(R.id.qr_code);
+        initView();
         BitcoinWalletManager.getInstance().loadWallet(this, new BitcoinWalletManager.OnWalletLoadedListener() {
             @Override
             public void onWalletLoaded(final Wallet w) {
@@ -46,6 +58,14 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
+    }
+
+    private void initView() {
+        mAddressText = findViewById(R.id.address);
+        mBalanceText = findViewById(R.id.balance);
+        mQrImageView = findViewById(R.id.qr_code);
+        mToAddressEdit = findViewById(R.id.to);
+        mAmountEdit = findViewById(R.id.amount);
     }
 
     private void addWalletListeners() {
@@ -83,6 +103,22 @@ public class MainActivity extends AppCompatActivity {
 
     private WalletListener mWalletListener = new WalletListener();
 
+    public void onSendBitcoin(View view) {
+        String to = mToAddressEdit.getText().toString();
+        String amount = mAmountEdit.getText().toString();
+        if (TextUtils.isEmpty(to) || TextUtils.isEmpty(amount)) {
+            return;
+        }
+        Address address = Address.fromBase58(Constants.NETWORK_PARAMETERS, to);
+        Coin coin = MonetaryFormat.MBTC.parse(amount);
+        SendRequest sendRequest = SendRequest.to(address, coin);
+        try {
+            wallet.sendCoinsOffline(sendRequest);
+        } catch (InsufficientMoneyException e) {
+            e.printStackTrace();
+        }
+    }
+
     private class WalletListener implements WalletChangeEventListener,
             WalletCoinsSentEventListener, WalletReorganizeEventListener, WalletCoinsReceivedEventListener {
 
@@ -93,6 +129,8 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onCoinsSent(Wallet wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
+            Log.d(TAG, "onCoinsSent: " + tx.getHashAsString() + "preBalance: "
+                    + prevBalance.getValue() + "newBalance: " + newBalance.getValue());
             updateUI(wallet);
         }
 
@@ -110,6 +148,5 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         removeWalletListener();
-        stopService(new Intent(this, BlockChainService.class));
     }
 }
