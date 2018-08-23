@@ -15,6 +15,8 @@ import org.bitcoinj.core.CheckpointManager;
 import org.bitcoinj.core.Peer;
 import org.bitcoinj.core.PeerAddress;
 import org.bitcoinj.core.PeerGroup;
+import org.bitcoinj.core.Sha256Hash;
+import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.listeners.PeerConnectedEventListener;
 import org.bitcoinj.core.listeners.PeerDisconnectedEventListener;
 import org.bitcoinj.core.listeners.PeerDiscoveredEventListener;
@@ -36,8 +38,10 @@ public class BlockChainService extends Service {
 
     private static final String TAG = "BlockChainService";
 
-
     public static final String USER_AGENT = "Bitcoin Wallet";
+
+    public static final String ACTION_BROADCAST_TRANSACTION = "action_broadcast_transaction";
+    public static final String ACTION_BROADCAST_TRANSACTION_HASH = "action_broadcast_transaction_hash";
 
     private SPVBlockStore blockStore;
     private PeerGroup peerGroup;
@@ -53,6 +57,23 @@ public class BlockChainService extends Service {
         if (wallet != null) {
             createBlockChain();
         }
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent !=  null) {
+            String action = intent.getAction();
+            if (action != null && action.equalsIgnoreCase(ACTION_BROADCAST_TRANSACTION)) {
+                byte[] hashArray = intent.getByteArrayExtra(ACTION_BROADCAST_TRANSACTION_HASH);
+                Sha256Hash sha256Hash = Sha256Hash.wrap(hashArray);
+                Transaction transaction = wallet.getTransaction(sha256Hash);
+                if (peerGroup != null)  {
+                    Log.d(TAG, "onStartCommand: broadcast transaction " + transaction.getHashAsString());
+                    peerGroup.broadcastTransaction(transaction);
+                }
+            }
+        }
+        return super.onStartCommand(intent, flags, startId);
     }
 
     private void createBlockChain() {
@@ -175,5 +196,11 @@ public class BlockChainService extends Service {
         peerGroup.removeDisconnectedEventListener(mPeerDisconnectedEventListener);
         peerGroup.removeDiscoveredEventListener(mPeerDiscoveredEventListener);
         peerGroup = null;
+    }
+
+    public static void broadcastTransaction(Context context, Transaction transaction) {
+        Intent intent = new Intent(ACTION_BROADCAST_TRANSACTION, null, context, BlockChainService.class);
+        intent.putExtra(ACTION_BROADCAST_TRANSACTION_HASH, transaction.getHash().getBytes());
+        context.startService(intent);
     }
 }

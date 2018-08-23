@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.subgraph.orchid.encoders.Hex;
 
@@ -113,8 +114,10 @@ public class MainActivity extends AppCompatActivity {
         Coin coin = MonetaryFormat.MBTC.parse(amount);
         SendRequest sendRequest = SendRequest.to(address, coin);
         try {
-            wallet.sendCoinsOffline(sendRequest);
+            Transaction transaction = wallet.sendCoinsOffline(sendRequest);
+            BlockChainService.broadcastTransaction(MainActivity.this, transaction);
         } catch (InsufficientMoneyException e) {
+            Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         }
     }
@@ -124,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onWalletChanged(Wallet wallet) {
+            Log.d(TAG, "onWalletChanged: " + wallet.currentAddress(KeyChain.KeyPurpose.RECEIVE_FUNDS));
             updateUI(wallet);
         }
 
@@ -136,6 +140,8 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onCoinsReceived(Wallet wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
+            Log.d(TAG, "onCoinsReceived: " + tx.getHashAsString() + "prevBalance" + prevBalance.getValue()
+                    + "newBalance " + newBalance.getValue());
             updateUI(wallet);
         }
 
