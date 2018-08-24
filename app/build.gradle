@@ -29,6 +29,8 @@ dependencies {
     implementation 'com.squareup.okhttp3:logging-interceptor:3.10.0'
     implementation 'com.android.support:multidex:1.0.3'
     implementation 'com.google.zxing:core:3.3.3'
+    implementation 'org.web3j:core:3.3.1-android'
+
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
