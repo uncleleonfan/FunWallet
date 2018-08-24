@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -83,4 +84,7 @@ public class EthereumWalletActivity extends AppCompatActivity {
         });
     }
 
+    public void onSendEth(View view) {
+
+    }
 }
