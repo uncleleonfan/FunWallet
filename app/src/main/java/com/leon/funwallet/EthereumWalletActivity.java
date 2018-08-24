@@ -1,9 +1,11 @@
 package com.leon.funwallet;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import org.web3j.crypto.WalletFile;
@@ -11,9 +13,12 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jFactory;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.http.HttpService;
+import org.web3j.utils.Convert;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 
 
 public class EthereumWalletActivity extends AppCompatActivity {
@@ -22,7 +27,7 @@ public class EthereumWalletActivity extends AppCompatActivity {
 
     private WalletFile mWalletFile;
 
-    private TextView mWalletAddressText;
+    private EditText mWalletAddressText;
 
     private static final String HEX_PREFIX = "0x";
 
@@ -47,16 +52,28 @@ public class EthereumWalletActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         mWalletAddressText.setText(address);
+                        updateBalance(address);
                     }
                 });
+            }
+        });
 
+    }
 
+    private void updateBalance(final String address) {
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
                 try {
-                    final BigInteger balance = mWeb3j.ethGetBalance(address, DefaultBlockParameterName.LATEST).send().getBalance();
+                    Log.d(TAG, "run: " + address);
+                    final BigInteger balance = mWeb3j.ethGetBalance(address,
+                            DefaultBlockParameterName.LATEST).send().getBalance();
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            mBalanceText.setText(String.valueOf(balance.intValue()));
+                            BigDecimal bigDecimal = Convert.fromWei(balance.toString(), Convert.Unit.ETHER);
+                            String balanceString = bigDecimal.setScale(8, RoundingMode.FLOOR).toPlainString() + " eth";
+                            mBalanceText.setText(balanceString);
                         }
                     });
                 } catch (IOException e) {
@@ -64,7 +81,6 @@ public class EthereumWalletActivity extends AppCompatActivity {
                 }
             }
         });
-
     }
 
 }
