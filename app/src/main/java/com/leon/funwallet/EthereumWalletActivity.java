@@ -4,17 +4,26 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import org.web3j.crypto.CipherException;
+import org.web3j.crypto.Credentials;
+import org.web3j.crypto.ECKeyPair;
+import org.web3j.crypto.RawTransaction;
+import org.web3j.crypto.TransactionEncoder;
+import org.web3j.crypto.Wallet;
 import org.web3j.crypto.WalletFile;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jFactory;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.utils.Convert;
+import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -34,7 +43,13 @@ public class EthereumWalletActivity extends AppCompatActivity {
 
     private TextView mBalanceText;
 
+    private EditText mToAddressEdit;
+    private EditText mAmountEdit;
+
     private Web3j mWeb3j = Web3jFactory.build(new HttpService("https://ropsten.infura.io/1UoO4I/"));
+
+
+    private String mAddress;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -42,18 +57,20 @@ public class EthereumWalletActivity extends AppCompatActivity {
         setContentView(R.layout.activity_ethereum_wallet);
         mWalletAddressText = findViewById(R.id.address);
         mBalanceText = findViewById(R.id.balance);
+        mToAddressEdit = findViewById(R.id.to);
+        mAmountEdit = findViewById(R.id.amount);
 
         EthWalletManager.getInstance().loadWallet(this, new EthWalletManager.OnWalletLoadedListener() {
             @Override
             public void onWalletLoaded(WalletFile w) {
                 mWalletFile = w;
                 Log.d(TAG, "onWalletLoaded: " + mWalletFile.getAddress().length());
-                final String address = HEX_PREFIX + mWalletFile.getAddress();
+                mAddress = HEX_PREFIX + mWalletFile.getAddress();
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mWalletAddressText.setText(address);
-                        updateBalance(address);
+                        mWalletAddressText.setText(mAddress);
+                        updateBalance();
                     }
                 });
             }
@@ -61,13 +78,13 @@ public class EthereumWalletActivity extends AppCompatActivity {
 
     }
 
-    private void updateBalance(final String address) {
+    private void updateBalance() {
         AsyncTask.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Log.d(TAG, "run: " + address);
-                    final BigInteger balance = mWeb3j.ethGetBalance(address,
+                    Log.d(TAG, "run: " + mAddress);
+                    final BigInteger balance = mWeb3j.ethGetBalance(mAddress,
                             DefaultBlockParameterName.LATEST).send().getBalance();
                     runOnUiThread(new Runnable() {
                         @Override
@@ -85,6 +102,39 @@ public class EthereumWalletActivity extends AppCompatActivity {
     }
 
     public void onSendEth(View view) {
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (mAddress == null || TextUtils.isEmpty(mToAddressEdit.getText().toString())
+                        || TextUtils.isEmpty(mAmountEdit.getText().toString())) return;
 
+                try {
+                    BigInteger transactionCount = mWeb3j.ethGetTransactionCount(mAddress, DefaultBlockParameterName.LATEST).send().getTransactionCount();
+                    BigInteger gasPrice = mWeb3j.ethGasPrice().send().getGasPrice();
+                    Log.d(TAG, "run: " + transactionCount + ", " + gasPrice);
+                    BigInteger gasLimit = new BigInteger("200000");
+                    BigDecimal value = Convert.toWei(mAmountEdit.getText().toString().trim(), Convert.Unit.ETHER);
+                    Log.d(TAG, "run: value wei" + value.toPlainString());
+                    String to = mToAddressEdit.getText().toString().trim();
+                    RawTransaction etherTransaction = RawTransaction.createEtherTransaction(transactionCount, gasPrice, gasLimit, to, value.toBigInteger());
+                    ECKeyPair ecKeyPair = Wallet.decrypt("a12345678", mWalletFile);
+                    Credentials credentials = Credentials.create(ecKeyPair);
+                    byte[] bytes = TransactionEncoder.signMessage(etherTransaction, credentials);
+                    String hexValue = Numeric.toHexString(bytes);
+                    final String transactionHash = mWeb3j.ethSendRawTransaction(hexValue).send().getTransactionHash();
+                    Log.d(TAG, "run: transactionHash " + transactionHash);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(EthereumWalletActivity.this, "Send success!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (CipherException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 }
