@@ -30,6 +30,8 @@
         <activity android:name=".KeyStoreActivity"/>
 
         <activity android:name=".PrivateKeyActivity"/>
+
+        <activity android:name=".MnemonicActivity"/>
     </application>
 
 </manifest>

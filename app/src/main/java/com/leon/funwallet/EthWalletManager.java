@@ -12,9 +12,11 @@ import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
 import org.web3j.crypto.Wallet;
 import org.web3j.crypto.WalletFile;
+import org.web3j.utils.Numeric;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -103,6 +105,17 @@ public class EthWalletManager {
         try {
             return objectMapper.writeValueAsString(wallet);
         } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String exportPrivateKey(WalletFile wallet) {
+        try {
+            ECKeyPair ecKeyPair = Wallet.decrypt(PASSWORD, wallet);
+            BigInteger privateKey = ecKeyPair.getPrivateKey();
+            return  Numeric.toHexStringNoPrefixZeroPadded(privateKey, Keys.PRIVATE_KEY_LENGTH_IN_HEX);
+        } catch (CipherException e) {
             e.printStackTrace();
         }
         return null;

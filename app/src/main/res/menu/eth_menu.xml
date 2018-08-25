@@ -10,4 +10,8 @@
     <item android:id="@+id/export_private_key"
         android:title="Export Wallet Private Key"
         app:showAsAction="never"/>
+
+    <item android:id="@+id/mnemonics"
+        android:title="Mnemonics"
+        app:showAsAction="never"/>
 </menu>

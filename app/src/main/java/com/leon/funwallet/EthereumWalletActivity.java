@@ -17,7 +17,6 @@ import android.widget.Toast;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
-import org.web3j.crypto.Keys;
 import org.web3j.crypto.RawTransaction;
 import org.web3j.crypto.TransactionEncoder;
 import org.web3j.crypto.Wallet;
@@ -157,6 +156,10 @@ public class EthereumWalletActivity extends AppCompatActivity {
             case R.id.export_private_key:
                 exportPrivateKey();
                 break;
+            case R.id.mnemonics:
+                Intent intent = new Intent(this, MnemonicActivity.class);
+                startActivity(intent);
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -165,16 +168,11 @@ public class EthereumWalletActivity extends AppCompatActivity {
         if (mWalletFile == null) {
             return;
         }
-        try {
-            ECKeyPair ecKeyPair = Wallet.decrypt("a12345678", mWalletFile);
-            BigInteger privateKey = ecKeyPair.getPrivateKey();
-            String privateKeyString = Numeric.toHexStringNoPrefixZeroPadded(privateKey, Keys.PRIVATE_KEY_LENGTH_IN_HEX);
-            Intent intent = new Intent(this, PrivateKeyActivity.class);
-            intent.putExtra("pk", privateKeyString);
-            startActivity(intent);
-        } catch (CipherException e) {
-            e.printStackTrace();
-        }
+
+        Intent intent = new Intent(this, PrivateKeyActivity.class);
+        intent.putExtra("pk", EthWalletManager.getInstance().exportPrivateKey(mWalletFile));
+        startActivity(intent);
+
     }
 
     private void exportKeyStore() {
