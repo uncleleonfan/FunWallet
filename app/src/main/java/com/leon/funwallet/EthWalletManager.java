@@ -4,6 +4,7 @@ package com.leon.funwallet;
 import android.content.Context;
 import android.content.ContextWrapper;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.web3j.crypto.CipherException;
@@ -97,6 +98,15 @@ public class EthWalletManager {
         return dateFormat.format(new Date()) + walletFile.getAddress() + ".json";
     }
 
+
+    public String getWalletFileString(WalletFile wallet) {
+        try {
+            return objectMapper.writeValueAsString(wallet);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 
 

@@ -1,11 +1,14 @@
 package com.leon.funwallet;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -136,5 +139,31 @@ public class EthereumWalletActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.eth_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.export_wallet_file:
+                exportWalletFile();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void exportWalletFile() {
+        if (mWalletFile == null) {
+            return;
+        }
+        Intent intent = new Intent(this, KeyStoreActivity.class);
+
+        intent.putExtra("keystore", EthWalletManager.getInstance().getWalletFileString(mWalletFile));
+        startActivity(intent);
     }
 }

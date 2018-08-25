@@ -2,7 +2,6 @@ package com.leon.funwallet;
 
 import android.content.ContextWrapper;
 
-import org.bitcoinj.core.Context;
 import org.bitcoinj.wallet.UnreadableWalletException;
 import org.bitcoinj.wallet.Wallet;
 import org.bitcoinj.wallet.WalletFiles;
@@ -20,13 +19,11 @@ public class BitcoinWalletManager {
 
     private static BitcoinWalletManager sManager;
 
-
     private final Executor getWalletExecutor = Executors.newSingleThreadExecutor();
 
     private Wallet wallet;
 
     private BitcoinWalletManager() {
-
     }
 
     public static BitcoinWalletManager getInstance() {
