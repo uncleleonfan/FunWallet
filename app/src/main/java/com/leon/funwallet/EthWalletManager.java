@@ -99,7 +99,7 @@ public class EthWalletManager {
     }
 
 
-    public String getWalletFileString(WalletFile wallet) {
+    public String exportKeyStore(WalletFile wallet) {
         try {
             return objectMapper.writeValueAsString(wallet);
         } catch (JsonProcessingException e) {

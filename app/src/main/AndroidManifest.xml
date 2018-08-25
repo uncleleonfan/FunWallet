@@ -28,6 +28,8 @@
         <service android:name=".BlockChainService"/>
 
         <activity android:name=".KeyStoreActivity"/>
+
+        <activity android:name=".PrivateKeyActivity"/>
     </application>
 
 </manifest>
