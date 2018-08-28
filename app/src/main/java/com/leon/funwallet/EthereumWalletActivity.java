@@ -18,6 +18,7 @@ import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Bool;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Uint256;
@@ -32,6 +33,7 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jFactory;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.Transaction;
+import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
@@ -41,6 +43,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -61,6 +64,11 @@ public class EthereumWalletActivity extends AppCompatActivity {
     private EditText mToAddressEdit;
     private EditText mAmountEdit;
 
+    private EditText mTokenToAddressEdit;
+    private EditText mTokenAmountEdit;
+
+
+
     private Web3j mWeb3j = Web3jFactory.build(new HttpService("https://ropsten.infura.io/1UoO4I/"));
     private String CONTRACT_ADDRESS = "0xaac1a52900b8651c9e1e2972d8e4c80cab2ce875";
 
@@ -75,6 +83,8 @@ public class EthereumWalletActivity extends AppCompatActivity {
         mToAddressEdit = findViewById(R.id.to);
         mAmountEdit = findViewById(R.id.amount);
         mTokenBalanceText = findViewById(R.id.token_balance);
+        mTokenToAddressEdit = findViewById(R.id.token_to);
+        mTokenAmountEdit = findViewById(R.id.token_amount);
 
         EthWalletManager.getInstance().loadWallet(this, new EthWalletManager.OnWalletLoadedListener() {
             @Override
@@ -219,8 +229,8 @@ public class EthereumWalletActivity extends AppCompatActivity {
 
     private Function balanceOf(String owner) {
         return new Function("balanceOf",
-                Arrays.asList(new Address(owner)),
-                Arrays.asList(new TypeReference<Uint256>(){}));
+                Collections.singletonList(new Address(owner)),
+                Collections.singletonList(new TypeReference<Uint256>(){}));
     }
 
     private String callSmartContractFunction(
@@ -234,5 +244,67 @@ public class EthereumWalletActivity extends AppCompatActivity {
                 .sendAsync().get();
 
         return response.getValue();
+    }
+
+    private Function transfer(String to, BigInteger value) {
+        return new Function(
+                "transfer",
+                Arrays.asList(new Address(to), new Uint256(value)),
+                Collections.singletonList(new TypeReference<Bool>() {}));
+    }
+
+    public void onSendMET(View view) {
+        if (TextUtils.isEmpty(mTokenToAddressEdit.getText())
+                || TextUtils.isEmpty(mTokenAmountEdit.getText())) {
+            return;
+        }
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String to = mTokenToAddressEdit.getText().toString();
+                    String amount = mTokenAmountEdit.getText().toString();
+                    Function transfer = transfer(to, new BigInteger(amount));
+                    ECKeyPair ecKeyPair = Wallet.decrypt("a12345678", mWalletFile);
+                    Credentials credentials = Credentials.create(ecKeyPair);
+                    String transactionHash = execute(credentials, transfer, CONTRACT_ADDRESS);
+                    Log.d(TAG, "onSendMET: " + transactionHash);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(EthereumWalletActivity.this, transactionHash, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } catch (CipherException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+    }
+
+    private String execute(
+            Credentials credentials, Function function, String contractAddress) throws Exception {
+        BigInteger nonce =  mWeb3j.ethGetTransactionCount(mAddress, DefaultBlockParameterName.LATEST).send().getTransactionCount();
+        BigInteger gasPrice = mWeb3j.ethGasPrice().send().getGasPrice();
+        BigInteger gasLimit = new BigInteger("200000");
+        String encodedFunction = FunctionEncoder.encode(function);
+
+        RawTransaction rawTransaction = RawTransaction.createTransaction(
+                nonce,
+                gasPrice,
+                gasLimit,
+                contractAddress,
+                encodedFunction);
+
+        byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
+        String hexValue = Numeric.toHexString(signedMessage);
+
+        EthSendTransaction transactionResponse = mWeb3j.ethSendRawTransaction(hexValue)
+                .sendAsync().get();
+
+        return transactionResponse.getTransactionHash();
     }
 }

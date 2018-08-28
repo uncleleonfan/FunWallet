@@ -1,77 +1,120 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="8dp"
-    android:orientation="vertical">
-    
-    <TextView
+    android:layout_height="match_parent">
+
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Address:"/>
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="8dp">
 
-    <EditText
-        android:id="@+id/address"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-    
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Balance:"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Address:" />
 
-    <TextView
-        android:id="@+id/balance"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        <EditText
+            android:id="@+id/address"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Balance:" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Token Balance:"/>
-
-    <TextView
-        android:id="@+id/token_balance"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
-        android:background="@color/colorPrimary"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Send eth to :"/>
-
-    <EditText
-        android:id="@+id/to"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="address"/>
+        <TextView
+            android:id="@+id/balance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Amount"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Token Balance:" />
 
-    <EditText
-        android:id="@+id/amount"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="send amount eth in ether"/>
+        <TextView
+            android:id="@+id/token_balance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Send"
-        android:onClick="onSendEth"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
+            android:background="@color/colorPrimary" />
 
-</LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Send eth to :" />
+
+        <EditText
+            android:id="@+id/to"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="address" />
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Amount" />
+
+        <EditText
+            android:id="@+id/amount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="send amount eth in ether" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="onSendEth"
+            android:text="Send ETH" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
+            android:background="@color/colorPrimary" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Send MET token to :" />
+
+        <EditText
+            android:id="@+id/token_to"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="address" />
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Amount" />
+
+        <EditText
+            android:id="@+id/token_amount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="send amount met" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="onSendMET"
+            android:text="Send MET" />
+
+
+    </LinearLayout>
+
+</ScrollView>
