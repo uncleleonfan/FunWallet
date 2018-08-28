@@ -33,23 +33,6 @@
 
 
         <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Token Balance:" />
-
-        <TextView
-            android:id="@+id/token_balance"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginBottom="10dp"
-            android:layout_marginTop="10dp"
-            android:background="@color/colorPrimary" />
-
-        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Send eth to :" />
@@ -86,6 +69,17 @@
             android:background="@color/colorPrimary" />
 
         <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Token Balance:" />
+
+        <TextView
+            android:id="@+id/token_balance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Send MET token to :" />
@@ -113,7 +107,6 @@
             android:layout_height="wrap_content"
             android:onClick="onSendMET"
             android:text="Send MET" />
-
 
     </LinearLayout>
 
