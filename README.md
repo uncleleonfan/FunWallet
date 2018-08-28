@@ -7,4 +7,4 @@ FunWallet is a simple bitcoin and ethereum wallet example, shows the basic block
 * Ethereum balance
 * Transfer ethereum
 * ERC20 token balance
-* Transfer ERC20 token balance
+* Transfer ERC20 token
