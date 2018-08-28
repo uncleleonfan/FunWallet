@@ -14,6 +14,13 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.FunctionReturnDecoder;
+import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
@@ -24,6 +31,7 @@ import org.web3j.crypto.WalletFile;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jFactory;
 import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
@@ -32,6 +40,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
+import java.util.Arrays;
+import java.util.List;
 
 
 public class EthereumWalletActivity extends AppCompatActivity {
@@ -46,11 +56,13 @@ public class EthereumWalletActivity extends AppCompatActivity {
 
     private TextView mBalanceText;
 
+    private TextView mTokenBalanceText;
+
     private EditText mToAddressEdit;
     private EditText mAmountEdit;
 
     private Web3j mWeb3j = Web3jFactory.build(new HttpService("https://ropsten.infura.io/1UoO4I/"));
-
+    private String CONTRACT_ADDRESS = "0xaac1a52900b8651c9e1e2972d8e4c80cab2ce875";
 
     private String mAddress;
 
@@ -62,6 +74,7 @@ public class EthereumWalletActivity extends AppCompatActivity {
         mBalanceText = findViewById(R.id.balance);
         mToAddressEdit = findViewById(R.id.to);
         mAmountEdit = findViewById(R.id.amount);
+        mTokenBalanceText = findViewById(R.id.token_balance);
 
         EthWalletManager.getInstance().loadWallet(this, new EthWalletManager.OnWalletLoadedListener() {
             @Override
@@ -89,6 +102,24 @@ public class EthereumWalletActivity extends AppCompatActivity {
                     Log.d(TAG, "run: " + mAddress);
                     final BigInteger balance = mWeb3j.ethGetBalance(mAddress,
                             DefaultBlockParameterName.LATEST).send().getBalance();
+                    Function function = balanceOf(mAddress);
+                    String s = callSmartContractFunction(function, CONTRACT_ADDRESS);
+                    Log.d(TAG, "run: updateBalance " + s);
+                    List<Type> decode = FunctionReturnDecoder.decode(s, function.getOutputParameters());
+                    if (decode != null && decode.size() > 0) {
+                        Uint256 type = (Uint256) decode.get(0);
+                        BigInteger tokenBalance = type.getValue();
+                        if (tokenBalance != null) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mTokenBalanceText.setText(tokenBalance.toString());
+                                }
+                            });
+                        }
+
+                    }
+
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -98,6 +129,8 @@ public class EthereumWalletActivity extends AppCompatActivity {
                         }
                     });
                 } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -182,5 +215,24 @@ public class EthereumWalletActivity extends AppCompatActivity {
         Intent intent = new Intent(this, KeyStoreActivity.class);
         intent.putExtra("keystore", EthWalletManager.getInstance().exportKeyStore(mWalletFile));
         startActivity(intent);
+    }
+
+    private Function balanceOf(String owner) {
+        return new Function("balanceOf",
+                Arrays.asList(new Address(owner)),
+                Arrays.asList(new TypeReference<Uint256>(){}));
+    }
+
+    private String callSmartContractFunction(
+            Function function, String contractAddress) throws Exception {
+        String encodedFunction = FunctionEncoder.encode(function);
+
+        org.web3j.protocol.core.methods.response.EthCall response = mWeb3j.ethCall(
+                Transaction.createEthCallTransaction(
+                        mAddress, contractAddress, encodedFunction),
+                DefaultBlockParameterName.LATEST)
+                .sendAsync().get();
+
+        return response.getValue();
     }
 }
