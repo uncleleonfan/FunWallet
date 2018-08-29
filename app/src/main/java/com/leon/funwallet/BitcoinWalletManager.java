@@ -1,6 +1,7 @@
 package com.leon.funwallet;
 
 import android.content.ContextWrapper;
+import android.os.AsyncTask;
 
 import org.bitcoinj.wallet.UnreadableWalletException;
 import org.bitcoinj.wallet.Wallet;
@@ -11,15 +12,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class BitcoinWalletManager {
 
     private static BitcoinWalletManager sManager;
-
-    private final Executor getWalletExecutor = Executors.newSingleThreadExecutor();
 
     private Wallet wallet;
 
@@ -42,7 +39,7 @@ public class BitcoinWalletManager {
             listener.onWalletLoaded(wallet);
             return;
         }
-        getWalletExecutor.execute(new Runnable() {
+        AsyncTask.execute(new Runnable() {
             @Override
             public void run() {
                 try {
