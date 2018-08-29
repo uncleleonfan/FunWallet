@@ -3,6 +3,7 @@ package com.leon.funwallet;
 
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.os.AsyncTask;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,8 +23,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 public class EthWalletManager {
 
@@ -35,8 +34,6 @@ public class EthWalletManager {
     private static final String PASSWORD = "a12345678";
 
     private ObjectMapper objectMapper = new ObjectMapper();
-
-    private final Executor getWalletExecutor = Executors.newSingleThreadExecutor();
 
     private static EthWalletManager sEthWalletManager;
 
@@ -61,7 +58,7 @@ public class EthWalletManager {
         if (wallet != null && listener != null) {
             listener.onWalletLoaded(wallet);
         }
-        getWalletExecutor.execute(new Runnable() {
+        AsyncTask.execute(new Runnable() {
             @Override
             public void run() {
                 try {
