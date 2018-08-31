@@ -10,6 +10,7 @@ import org.bitcoinj.wallet.WalletProtobufSerializer;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
@@ -45,14 +46,9 @@ public class BitcoinWalletManager {
                 try {
                     File walletFile = activity.getFileStreamPath("wallet-protobuf");
                     if (walletFile.exists()) {
-                        InputStream inputStream = new FileInputStream(walletFile);
-                        wallet  = new WalletProtobufSerializer().readWallet(inputStream);
-                        wallet.autosaveToFile(walletFile, 3 * 1000, TimeUnit.MILLISECONDS, null);
-                        wallet.cleanup();
+                        wallet = readWallet(walletFile);
                     } else {
-                        wallet = new Wallet(Constants.NETWORK_PARAMETERS);
-                        WalletFiles walletFiles = wallet.autosaveToFile(walletFile, 3 * 1000, TimeUnit.MILLISECONDS, null);
-                        walletFiles.saveNow();
+                        wallet = createWallet(walletFile);
                     }
                     if (listener != null) {
                         listener.onWalletLoaded(wallet);
@@ -64,6 +60,21 @@ public class BitcoinWalletManager {
                 }
             }
         });
+    }
+
+    private Wallet createWallet(File walletFile) throws IOException {
+        Wallet wallet = new Wallet(Constants.NETWORK_PARAMETERS);
+        WalletFiles walletFiles = wallet.autosaveToFile(walletFile, 3 * 1000, TimeUnit.MILLISECONDS, null);
+        walletFiles.saveNow();
+        return wallet;
+    }
+
+    private Wallet readWallet(File walletFile) throws FileNotFoundException, UnreadableWalletException {
+        InputStream inputStream = new FileInputStream(walletFile);
+        Wallet wallet  = new WalletProtobufSerializer().readWallet(inputStream);
+        wallet.autosaveToFile(walletFile, 3 * 1000, TimeUnit.MILLISECONDS, null);
+        wallet.cleanup();
+        return wallet;
     }
 
     public Wallet getWallet() {

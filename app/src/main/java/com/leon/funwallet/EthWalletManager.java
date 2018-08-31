@@ -63,7 +63,7 @@ public class EthWalletManager {
             public void run() {
                 try {
                     File walletDir = contextWrapper.getDir("eth", Context.MODE_PRIVATE);
-                    if (walletDir.exists()) {
+                    if (walletDir.exists() && walletDir.listFiles().length > 0) {
                         File[] files = walletDir.listFiles();
                         wallet = objectMapper.readValue(files[0], WalletFile.class);
                     } else {
@@ -73,7 +73,7 @@ public class EthWalletManager {
                         File destination = new File(walletDir, walletFileName);
                         objectMapper.writeValue(destination, wallet);
                     }
-                    if (listener != null) {
+                    if (listener != null && wallet != null) {
                         listener.onWalletLoaded(wallet);
                     }
                 } catch (NoSuchAlgorithmException e) {
