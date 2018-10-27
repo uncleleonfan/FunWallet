@@ -17,6 +17,7 @@ import org.bitcoinj.core.Address;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.InsufficientMoneyException;
 import org.bitcoinj.core.Transaction;
+import org.bitcoinj.crypto.DeterministicHierarchy;
 import org.bitcoinj.uri.BitcoinURI;
 import org.bitcoinj.utils.MonetaryFormat;
 import org.bitcoinj.wallet.KeyChain;
@@ -91,7 +92,8 @@ public class BitcoinWalletActivity extends AppCompatActivity {
             public void run() {
                 Coin balance = wallet.getBalance(Wallet.BalanceType.ESTIMATED);
                 mAddressText.setText(address.toString());
-                mBalanceText.setText(String.valueOf(balance.value));
+                String balanceString = String.valueOf(balance.value / 100000) + " mBTC";
+                mBalanceText.setText(balanceString);
                 BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), bitmap);
                 bitmapDrawable.setFilterBitmap(false);
                 mQrImageView.setImageDrawable(bitmapDrawable);

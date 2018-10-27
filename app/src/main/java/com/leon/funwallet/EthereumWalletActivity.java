@@ -110,8 +110,6 @@ public class EthereumWalletActivity extends AppCompatActivity {
             public void run() {
                 try {
                     Log.d(TAG, "run: " + mAddress);
-                    final BigInteger balance = mWeb3j.ethGetBalance(mAddress,
-                            DefaultBlockParameterName.LATEST).send().getBalance();
                     Function function = balanceOf(mAddress);
                     String s = callSmartContractFunction(function, CONTRACT_ADDRESS);
                     Log.d(TAG, "run: updateBalance " + s);
@@ -129,7 +127,8 @@ public class EthereumWalletActivity extends AppCompatActivity {
                         }
 
                     }
-
+                    final BigInteger balance = mWeb3j.ethGetBalance(mAddress,
+                            DefaultBlockParameterName.LATEST).send().getBalance();
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {

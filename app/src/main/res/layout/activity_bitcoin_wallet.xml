@@ -23,8 +23,8 @@
 
     <ImageView
         android:id="@+id/qr_code"
-        android:layout_width="224dp"
-        android:layout_height="224dp"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
         android:scaleType="fitXY"
         android:padding="8dp"
         android:background="@android:color/white"

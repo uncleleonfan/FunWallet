@@ -29,15 +29,9 @@ public class EthWalletManager {
     private static final String TAG = "EthWalletManager";
 
     private WalletFile wallet;
-
-
     private static final String PASSWORD = "a12345678";
-
     private ObjectMapper objectMapper = new ObjectMapper();
-
     private static EthWalletManager sEthWalletManager;
-
-
 
     private EthWalletManager() {
     }

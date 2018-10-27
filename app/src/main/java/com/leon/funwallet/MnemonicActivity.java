@@ -17,6 +17,7 @@ import org.bitcoinj.wallet.DeterministicKeyChain;
 import org.bitcoinj.wallet.DeterministicSeed;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.ECKeyPair;
+import org.web3j.crypto.MnemonicUtils;
 import org.web3j.crypto.Wallet;
 import org.web3j.crypto.WalletFile;
 
@@ -82,7 +83,10 @@ public class MnemonicActivity extends AppCompatActivity {
         byte[] entropy = new byte[DeterministicSeed.DEFAULT_SEED_ENTROPY_BITS / 8];
         secureRandom.nextBytes(entropy);
         return  MnemonicCode.INSTANCE.toMnemonic(entropy);
+
     }
+
+
 
     public void onImportMnemonics(View view) throws CipherException, MnemonicException.MnemonicLengthException, MnemonicException.MnemonicWordException, MnemonicException.MnemonicChecksumException {
         String s = importMnemonicEdit.getText().toString().trim();
